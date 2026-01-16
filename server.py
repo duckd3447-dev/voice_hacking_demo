@@ -1,26 +1,27 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-clients = []
 
-# ---------------- SERVE UI ----------------
+# Allow browser access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve UI
 @app.get("/")
-async def index():
+def home():
     return FileResponse("index.html")
 
-# ---------------- WEBSOCKET ----------------
-@app.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
-    await ws.accept()
-    clients.append(ws)
-    print("🟢 Client connected")
-
-    try:
-        while True:
-            await ws.receive_text()
-    except WebSocketDisconnect:
-        clients.remove(ws)
-        print("🔴 Client disconnected")
-
-
+# COMMAND API
+@app.get("/command/{cmd}")
+def command(cmd: str):
+    print("Received command:", cmd)
+    return {
+        "status": "ok",
+        "command": cmd
+    }
