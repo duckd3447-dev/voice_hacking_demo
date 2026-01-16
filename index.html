@@ -180,7 +180,9 @@ Cybersecurity is not optional — it is essential.
 </div>
 
 <script>
-const ws = new WebSocket(`ws://${location.host}/ws`);
+const ws = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
+);
 
 const frame = document.getElementById("frame");
 const status = document.getElementById("status");
