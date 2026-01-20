@@ -1,6 +1,7 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+ffrom fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, PlainTextResponse
-import asyncio
+import os
+import uvicorn
 
 app = FastAPI()
 
@@ -44,4 +45,7 @@ async def send_command(command: str):
     await broadcast(cmd)
     return PlainTextResponse(f"OK: {cmd}")
 
-
+# ---------------- START SERVER ----------------
+if _name_ == "_main_":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
