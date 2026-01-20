@@ -1,273 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Cybersecurity Command Demo</title>
 
 <style>
+* {
+  box-sizing: border-box;
+  font-family: Consolas, monospace;
+}
+
 body {
-    margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: radial-gradient(circle, #222, #000);
-    color: #fff;
-    transition: background 0.4s ease;
-    overflow: hidden;
+  margin: 0;
+  background: #000;
+  color: #00e5ff;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.container {
-    display: flex;
-    height: 100vh;
+/* LEFT PANEL */
+.sidebar {
+  width: 320px;
+  background: #0a0a0a;
+  border-right: 1px solid #00e5ff44;
+  padding: 15px;
 }
 
-.left {
-    width: 35%;
-    background: #111;
-    padding: 20px;
-    border-right: 3px solid #333;
+h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
 }
 
-.right {
-    width: 65%;
-    padding: 20px;
-    background: #000;
-    overflow-y: auto;
-    position: relative;
+button {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #00e5ff66;
+  color: #00e5ff;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
 }
 
-/* Title */
-h1 {
-    color: #0ff;
-    text-align: center;
+button.active {
+  border-color: #00ff88;
+  color: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
 }
 
-/* Buttons */
-.btn {
-    width: 100%;
-    padding: 14px;
-    margin: 12px 0;
-    font-size: 16px;
-    background: #222;
-    border: 2px solid #0ff;
-    color: #0ff;
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.btn.active {
-    border-color: lime;
-    color: lime;
-    opacity: 1;
-    box-shadow: 0 0 12px lime;
-}
-
-/* Status */
+/* STATUS */
 .status {
-    margin-top: 20px;
-    padding: 12px;
-    background: #222;
-    border-left: 6px solid yellow;
-    font-weight: bold;
+  margin-top: 15px;
+  padding: 8px;
+  font-size: 12px;
+  border-left: 4px solid yellow;
+  background: #111;
 }
 
-/* Output */
-.log {
-    white-space: pre-line;
-    font-family: monospace;
-    font-size: 15px;
-    color: red;
-    animation: glitch 1.5s infinite;
+/* RIGHT PANEL */
+.main {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle, #001111, #000);
 }
 
-/* Glitch effect */
+/* TERMINAL */
+.terminal {
+  position: absolute;
+  inset: 0;
+  padding: 12px;
+  color: #ff3b3b;
+  font-size: 13px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* PROGRESS BAR */
+.progress-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #111;
+}
+
+#progressBar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, red, orange);
+  transition: width 0.15s linear;
+}
+
+/* STATES */
+body.attack {
+  background: radial-gradient(circle, #220000, #000);
+}
+
+body.safe {
+  background: radial-gradient(circle, #002200, #000);
+}
+
+/* GLITCH */
 @keyframes glitch {
-    0% { text-shadow: 2px 0 red; }
-    20% { text-shadow: -2px 0 cyan; }
-    40% { text-shadow: 2px 0 lime; }
-    60% { text-shadow: -2px 0 red; }
-    80% { text-shadow: 2px 0 cyan; }
-    100% { text-shadow: none; }
+  0% { transform: translate(0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, 0); }
 }
 
-/* Progress bar */
-.progress {
-    width: 100%;
-    height: 8px;
-    background: #111;
-    border: 1px solid red;
-    margin-bottom: 12px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background: red;
-    animation: progressAnim 6s linear forwards;
-}
-
-@keyframes progressAnim {
-    from { width: 0%; }
-    to { width: 100%; }
-}
-
-/* Video */
-video {
-    width: 100%;
-    border: 3px solid red;
+.glitch .main {
+  animation: glitch 0.15s infinite;
 }
 </style>
 </head>
 
-<body>
-<div class="container">
-    <div class="left">
-        <h1>CYBERSECURITY COMMAND<br>DEMO</h1>
+<body class="safe">
 
-        <button class="btn" id="btn-attack">▶ Start Attack Simulation</button>
-        <button class="btn" id="btn-monitoring">🔵 Monitoring Mode</button>
-        <button class="btn" id="btn-secure">🟢 Secure Mode</button>
-        <button class="btn" id="btn-video">🎥 Play Attack Video</button>
-        <button class="btn" id="btn-reset">⟳ Reset Demo</button>
+<!-- LEFT -->
+<div class="sidebar">
+  <h2>CYBERSECURITY COMMAND DEMO</h2>
 
-        <div class="status" id="status">🟡 System Idle – No Threat Detected</div>
-    </div>
+  <button onclick="startAttack(this)">▶ Start Attack Simulation</button>
+  <button onclick="monitor(this)">📡 Monitoring Mode</button>
+  <button onclick="secure(this)">🛡 Secure Mode</button>
+  <button onclick="playVideo(this)">🎥 Play Attack Video</button>
+  <button onclick="resetSystem(this)">✔ Reset System</button>
 
-    <div class="right">
-        <div id="output"></div>
-    </div>
+  <div id="status" class="status">
+    ● System Idle — No Threat Detected
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="main">
+  <div id="terminal" class="terminal"></div>
+  <div class="progress-wrapper">
+    <div id="progressBar"></div>
+  </div>
 </div>
 
 <script>
-const ws = new WebSocket(
-    (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
-);
+const terminal = document.getElementById("terminal");
+const progress = document.getElementById("progressBar");
+const statusBox = document.getElementById("status");
+let attackInterval;
 
-const output = document.getElementById("output");
-const status = document.getElementById("status");
-const buttons = {
-    attack: document.getElementById("btn-attack"),
-    monitoring: document.getElementById("btn-monitoring"),
-    secure: document.getElementById("btn-secure"),
-    video: document.getElementById("btn-video"),
-    reset: document.getElementById("btn-reset")
-};
-
-function clearActive() {
-    Object.values(buttons).forEach(b => b.classList.remove("active"));
+/* BUTTON STATE */
+function setActive(btn) {
+  document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 }
 
-ws.onmessage = (e) => {
-    const cmd = e.data;
-    clearActive();
-    output.innerHTML = "";
+/* ATTACK */
+function startAttack(btn) {
+  fetch("/cmd/attack", { method: "POST" });
 
-    if (cmd === "idle") {
-        document.body.style.background = "#222";
-        status.innerText = "🟡 System Idle – No Threat Detected";
-        status.style.borderLeftColor = "yellow";
+  setActive(btn);
+  document.body.className = "attack glitch";
+
+  terminal.innerHTML = "";
+  progress.style.width = "0%";
+  statusBox.innerText = "● ALERT — Intrusion Detected";
+  statusBox.style.borderLeftColor = "red";
+
+  let i = 0;
+  clearInterval(attackInterval);
+
+  attackInterval = setInterval(() => {
+    if (i >= 40) {
+      clearInterval(attackInterval);
+      document.body.classList.remove("glitch");
+      return;
     }
 
-    if (cmd === "attack") {
-        document.body.style.background = "#300";
-        status.innerText = "🔴 ACTIVE CYBER ATTACK DETECTED";
-        status.style.borderLeftColor = "red";
-        buttons.attack.classList.add("active");
+    const line = document.createElement("div");
+    line.textContent =
+      `[${new Date().toLocaleTimeString()}] Unauthorized access attempt :: IP 192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
 
-        output.innerHTML = `
-            <div class="progress"><div class="progress-bar"></div></div>
-            <div class="log" id="log"></div>
-        `;
+    terminal.appendChild(line);
+    terminal.scrollTop = terminal.scrollHeight;
 
-        const lines = [
-            "Initializing intrusion detection...",
-            "Unauthorized access detected",
-            "Firewall bypass attempt",
-            "Exploit payload injected",
-            "Privilege escalation successful",
-            "Suspicious process spawned",
-            "Kernel memory modified",
-            "Root access achieved",
-            "Credential harvesting active",
-            "Keylogger running",
-            "Encrypted tunnel established",
-            "C2 server connected",
-            "Lateral movement detected",
-            "Zero-day exploit executed",
-            "Malware persistence installed",
-            "System hooks injected",
-            "Data exfiltration in progress",
-            "Sensitive files accessed",
-            "Shadow copy deleted",
-            "Security logs erased",
-            "Backdoor listening on port 443",
-            "Process masquerading as system",
-            "Memory dump initiated",
-            "Command execution confirmed",
-            "Privilege tokens forged",
-            "Threat escalation detected",
-            "Defense evasion active",
-            "Antivirus disabled",
-            "Ransomware module loaded",
-            "Encryption key generated",
-            "User activity monitored",
-            "Remote shell active",
-            "Network isolation advised",
-            "Incident response required",
-            "Threat level: CRITICAL",
-            "Attack simulation ongoing...",
-            "System integrity compromised",
-            "Unauthorized persistence confirmed",
-            "Attack chain complete"
-        ];
+    progress.style.width = `${(i / 40) * 100}%`;
+    i++;
+  }, 120);
+}
 
-        const log = document.getElementById("log");
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i >= lines.length) return clearInterval(interval);
-            log.innerText += lines[i++] + "\n";
-        }, 120);
-    }
+/* RESET */
+function resetSystem(btn) {
+  fetch("/cmd/reset", { method: "POST" });
 
-    if (cmd === "monitoring") {
-        document.body.style.background = "#002";
-        status.innerText = "🔵 Monitoring Mode – Traffic Observed";
-        status.style.borderLeftColor = "cyan";
-        buttons.monitoring.classList.add("active");
-    }
+  setActive(btn);
+  clearInterval(attackInterval);
+  document.body.className = "safe";
 
-    if (cmd === "secure") {
-        document.body.style.background = "#020";
-        status.innerText = "🟢 Secure Mode – System Protected";
-        status.style.borderLeftColor = "lime";
-        buttons.secure.classList.add("active");
-    }
+  terminal.innerHTML =
+`Security Restored
+✔ Attack contained
+✔ System integrity verified
+✔ Defensive layers restored
+✔ User awareness prevents breaches`;
 
-    if (cmd === "video") {
-        buttons.video.classList.add("active");
-        output.innerHTML = `
-            <video autoplay muted playsinline>
-                <source src="/static/hacking_demo.mp4" type="video/mp4">
-            </video>
-        `;
-    }
+  progress.style.width = "100%";
+  statusBox.innerText = "● System Safe — All Services Normal";
+  statusBox.style.borderLeftColor = "lime";
+}
 
-    if (cmd === "reset") {
-        document.body.style.background = "#000";
-        status.innerText = "✔ Threat Neutralized";
-        status.style.borderLeftColor = "lime";
-        buttons.reset.classList.add("active");
+/* PLACEHOLDERS */
+function monitor(btn) {
+  setActive(btn);
+  terminal.innerHTML = "Monitoring network traffic...\nNo anomalies detected.";
+}
 
-        output.innerHTML = `
-            <h2>Security Restored</h2>
-            <ul>
-                <li>Attack detected and contained</li>
-                <li>System integrity verified</li>
-                <li>Defensive layers restored</li>
-                <li>User awareness prevents breaches</li>
-            </ul>
-        `;
-    }
-};
+function secure(btn) {
+  setActive(btn);
+  terminal.innerHTML = "Secure mode enabled.\nFirewall rules enforced.";
+}
+
+function playVideo(btn) {
+  setActive(btn);
+  terminal.innerHTML = "Attack video playing...\n(Video module unchanged)";
+}
 </script>
+
 </body>
 </html>
