@@ -2,98 +2,92 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cyber Security System Manipulation Demo</title>
+<title>Cybersecurity Command Simulation</title>
 
 <style>
 body {
     margin: 0;
     font-family: "Segoe UI", sans-serif;
-    background: #111;
+    background: radial-gradient(circle, #222, #000);
     color: #fff;
 }
 
 .container {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
+    display: flex;
     height: 100vh;
-    border: 8px solid #ffcc00;
-    transition: border-color 0.5s;
 }
 
 .left {
-    padding: 30px;
-    background: #1a1a1a;
+    width: 30%;
+    background: #111;
+    padding: 20px;
+    border-right: 3px solid #333;
 }
 
 .right {
-    padding: 30px;
-    background: #0e1621;
+    width: 70%;
+    padding: 20px;
+    background: #000;
     overflow-y: auto;
 }
 
 h1 {
-    color: #00eaff;
-    margin-bottom: 5px;
-}
-
-.status {
-    margin-bottom: 30px;
-    font-size: 18px;
+    color: #0ff;
+    text-align: center;
 }
 
 .btn {
-    padding: 14px;
-    margin-bottom: 12px;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 16px;
     background: #222;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
+    border: 1px solid #0ff;
+    color: #0ff;
+    cursor: pointer;
 }
 
-.indicator {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: gray;
+.btn:hover {
+    background: #0ff;
+    color: #000;
 }
 
-.active {
-    background: #00ff66;
+.status {
+    margin-top: 20px;
+    padding: 10px;
+    background: #222;
+    border-left: 5px solid lime;
 }
 
 .log {
-    color: #ff4d4d;
-    font-family: monospace;
     white-space: pre-line;
+    font-family: monospace;
 }
 
 video {
     width: 100%;
-    border-radius: 10px;
-    margin-top: 20px;
-    display: none;
+    border: 2px solid red;
 }
 </style>
 </head>
 
 <body>
-
-<div class="container" id="frame">
-
+<div class="container">
     <div class="left">
-        <h1>Cyber Security Demo</h1>
-        <div class="status" id="status">System Status: No Active Threat</div>
+        <h1>Cybersecurity Live Demo</h1>
 
-        <div class="btn">Start Demo <span id="iStart" class="indicator"></span></div>
-        <div class="btn">Make Screen Blue <span id="iBlue" class="indicator"></span></div>
-        <div class="btn">Reset Demo <span id="iReset" class="indicator"></span></div>
+        <button class="btn" onclick="send('START')">Start Demo</button>
+        <button class="btn" onclick="send('BLUE')">Make Screen Blue</button>
+        <button class="btn" onclick="send('GREEN')">Make Screen Green</button>
+        <button class="btn" onclick="send('VIDEO')">Play Attack Video</button>
+        <button class="btn" onclick="send('RESET')">Reset Demo</button>
+
+        <div class="status" id="status">System Idle</div>
     </div>
 
-    <div class="right" id="output">
-        <p>System standing by...</p>
-        <video id="video" controls></video>
+    <div class="right">
+        <div id="output" class="log"></div>
     </div>
-
 </div>
 
 <script>
@@ -102,56 +96,83 @@ const ws = new WebSocket(
 );
 
 const output = document.getElementById("output");
-const frame = document.getElementById("frame");
 const status = document.getElementById("status");
-const video = document.getElementById("video");
 
-function indicator(id) {
-    document.getElementById(id).classList.add("active");
+function send(cmd) {
+    fetch("/cmd/" + cmd, { method: "POST" });
 }
 
 ws.onmessage = (e) => {
     const cmd = e.data;
 
     if (cmd === "START") {
-        frame.style.borderColor = "red";
-        status.innerText = "⚠ ACTIVE CYBER ATTACK DETECTED";
-        indicator("iStart");
+        document.body.style.background = "#300";
+        status.innerText = "⚠️ ACTIVE CYBER ATTACK DETECTED";
+        output.innerText = "";
 
-        output.innerHTML = "<div class='log'>" +
-            Array.from({length:20},(_,i)=>`[${i+1}] Unauthorized access attempt detected...`).join("\n") +
-            "</div>";
+        const lines = [
+            "Initializing intrusion detection...",
+            "Unauthorized access attempt detected",
+            "Bypassing firewall layer 1...",
+            "Exploit payload injected",
+            "Privilege escalation successful",
+            "Data exfiltration in progress",
+            "Brute-force attempt detected",
+            "Suspicious IP traced",
+            "Encrypted channel opened",
+            "Command & control server connected",
+            "Malware persistence established",
+            "Keylogger activated",
+            "Credential harvesting active",
+            "System integrity compromised",
+            "Root access granted",
+            "Payload execution confirmed",
+            "Threat level: CRITICAL",
+            "Network isolation recommended",
+            "Immediate response required",
+            "Cyber breach simulation complete"
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= lines.length) return clearInterval(interval);
+            output.innerText += lines[i++] + "\n";
+        }, 150);
     }
 
     if (cmd === "BLUE") {
-        frame.style.borderColor = "#00aaff";
-        indicator("iBlue");
+        document.body.style.background = "#002";
+        status.innerText = "🔵 Monitoring Mode";
+    }
+
+    if (cmd === "GREEN") {
+        document.body.style.background = "#020";
+        status.innerText = "🟢 System Secure";
     }
 
     if (cmd === "VIDEO") {
-        video.src = "/static/hacking_demo.mp4";
-        video.style.display = "block";
-        video.muted = false;
-        video.play();
+        output.innerHTML = `
+            <video autoplay muted playsinline>
+                <source src="/static/hacking_demo.mp4" type="video/mp4">
+            </video>
+        `;
     }
 
     if (cmd === "RESET") {
-        frame.style.borderColor = "#ffcc00";
-        status.innerText = "System Secure";
-        indicator("iReset");
+        document.body.style.background = "#000";
+        status.innerText = "✔️ Threat Neutralized";
 
         output.innerHTML = `
-        <h2>System Restored</h2>
-        <ul>
-            <li>Threat detected and neutralized</li>
-            <li>Unauthorized access prevented</li>
-            <li>Security layers validated</li>
-        </ul>`;
-        video.pause();
-        video.style.display = "none";
+            <h2>Security Restored</h2>
+            <ul>
+                <li>Continuous monitoring is essential</li>
+                <li>Zero-trust architecture recommended</li>
+                <li>Human awareness is the strongest defense</li>
+                <li>Prevention is better than response</li>
+            </ul>
+        `;
     }
 };
 </script>
-
 </body>
 </html>
