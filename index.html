@@ -2,228 +2,239 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Cybersecurity Command Demo</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  font-family: Consolas, monospace;
+:root {
+  --idle: #facc15;
+  --attack: #ff0033;
+  --monitor: #00bfff;
+  --secure: #00ff88;
+  --bg: #020617;
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: #000;
-  color: #00e5ff;
+  background: black;
+  color: #9ff;
+  font-family: "Courier New", monospace;
+}
+
+.container {
   display: flex;
   height: 100vh;
-  overflow: hidden;
 }
 
 /* LEFT PANEL */
-.sidebar {
+.panel {
   width: 320px;
-  background: #0a0a0a;
-  border-right: 1px solid #00e5ff44;
+  border-right: 2px solid #0ff;
   padding: 15px;
 }
 
 h2 {
+  color: #0ff;
   text-align: center;
-  margin-bottom: 15px;
-  font-size: 18px;
 }
 
-button {
-  width: 100%;
-  background: transparent;
-  border: 1px solid #00e5ff66;
-  color: #00e5ff;
+.btn {
+  border: 1px solid #0ff;
   padding: 10px;
-  margin-bottom: 10px;
-  cursor: pointer;
+  margin: 8px 0;
+  cursor: default;
+  text-align: center;
 }
 
-button.active {
-  border-color: #00ff88;
-  color: #00ff88;
-  box-shadow: 0 0 8px #00ff88;
+.btn.active {
+  background: #003;
+  border-color: var(--secure);
+  color: var(--secure);
 }
 
 /* STATUS */
 .status {
   margin-top: 15px;
-  padding: 8px;
-  font-size: 12px;
-  border-left: 4px solid yellow;
-  background: #111;
+  padding-left: 10px;
+  border-left: 6px solid var(--idle);
 }
 
-/* RIGHT PANEL */
-.main {
+/* INDICATOR */
+.indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  background: var(--idle);
+}
+
+/* MAIN DISPLAY */
+.display {
   flex: 1;
+  padding: 20px;
   position: relative;
-  background: radial-gradient(circle, #001111, #000);
+  overflow: hidden;
 }
 
 /* TERMINAL */
-.terminal {
-  position: absolute;
-  inset: 0;
-  padding: 12px;
-  color: #ff3b3b;
+#terminal {
+  white-space: pre-line;
   font-size: 13px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-}
-
-/* PROGRESS BAR */
-.progress-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  background: #111;
-}
-
-#progressBar {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, red, orange);
-  transition: width 0.15s linear;
-}
-
-/* STATES */
-body.attack {
-  background: radial-gradient(circle, #220000, #000);
-}
-
-body.safe {
-  background: radial-gradient(circle, #002200, #000);
+  line-height: 1.4;
 }
 
 /* GLITCH */
-@keyframes glitch {
-  0% { transform: translate(0); }
-  25% { transform: translate(-1px, 1px); }
-  50% { transform: translate(1px, -1px); }
-  75% { transform: translate(-1px, 0); }
+.glitch {
+  animation: glitch 0.15s infinite;
 }
 
-.glitch .main {
-  animation: glitch 0.15s infinite;
+@keyframes glitch {
+  0% { transform: translate(0); }
+  25% { transform: translate(2px, -2px); }
+  50% { transform: translate(-2px, 2px); }
+  75% { transform: translate(1px, -1px); }
+}
+
+/* VIDEO */
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>
 </head>
 
-<body class="safe">
+<body>
+<div class="container">
+  <div class="panel">
+    <h2>CYBERSECURITY COMMAND DEMO</h2>
 
-<!-- LEFT -->
-<div class="sidebar">
-  <h2>CYBERSECURITY COMMAND DEMO</h2>
+    <div class="btn" id="btn-attack">▶ Start Attack Simulation</div>
+    <div class="btn" id="btn-monitor">📡 Monitoring Mode</div>
+    <div class="btn" id="btn-secure">🛡 Secure Mode</div>
+    <div class="btn" id="btn-video">🎥 Play Attack Video</div>
+    <div class="btn" id="btn-reset">✔ Reset System</div>
 
-  <button onclick="startAttack(this)">▶ Start Attack Simulation</button>
-  <button onclick="monitor(this)">📡 Monitoring Mode</button>
-  <button onclick="secure(this)">🛡 Secure Mode</button>
-  <button onclick="playVideo(this)">🎥 Play Attack Video</button>
-  <button onclick="resetSystem(this)">✔ Reset System</button>
-
-  <div id="status" class="status">
-    ● System Idle — No Threat Detected
+    <div class="status" id="statusBox">
+      <span class="indicator" id="light"></span>
+      <span id="statusText">System Idle – No Threat Detected</span>
+    </div>
   </div>
-</div>
 
-<!-- RIGHT -->
-<div class="main">
-  <div id="terminal" class="terminal"></div>
-  <div class="progress-wrapper">
-    <div id="progressBar"></div>
+  <div class="display" id="display">
+    <div id="terminal"></div>
   </div>
 </div>
 
 <script>
+/* ---------------- WEBSOCKET ---------------- */
+const ws = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://") +
+  location.host + "/ws?v=" + Date.now()
+);
+
+/* KEEP ALIVE FOR RENDER */
+setInterval(() => {
+  if (ws.readyState === WebSocket.OPEN) ws.send("ping");
+}, 25000);
+
+ws.onopen = () => console.log("WebSocket connected");
+ws.onclose = () => console.log("WebSocket closed");
+
+/* ---------------- ELEMENTS ---------------- */
 const terminal = document.getElementById("terminal");
-const progress = document.getElementById("progressBar");
-const statusBox = document.getElementById("status");
-let attackInterval;
+const display = document.getElementById("display");
+const statusText = document.getElementById("statusText");
+const light = document.getElementById("light");
+const buttons = {
+  attack: document.getElementById("btn-attack"),
+  monitoring: document.getElementById("btn-monitor"),
+  secure: document.getElementById("btn-secure"),
+  video: document.getElementById("btn-video"),
+  reset: document.getElementById("btn-reset")
+};
 
-/* BUTTON STATE */
-function setActive(btn) {
-  document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-/* ATTACK */
-function startAttack(btn) {
-  fetch("/cmd/attack", { method: "POST" });
-
-  setActive(btn);
-  document.body.className = "attack glitch";
-
+/* ---------------- HELPERS ---------------- */
+function clearUI() {
   terminal.innerHTML = "";
-  progress.style.width = "0%";
-  statusBox.innerText = "● ALERT — Intrusion Detected";
-  statusBox.style.borderLeftColor = "red";
-
-  let i = 0;
-  clearInterval(attackInterval);
-
-  attackInterval = setInterval(() => {
-    if (i >= 40) {
-      clearInterval(attackInterval);
-      document.body.classList.remove("glitch");
-      return;
-    }
-
-    const line = document.createElement("div");
-    line.textContent =
-      `[${new Date().toLocaleTimeString()}] Unauthorized access attempt :: IP 192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
-
-    terminal.appendChild(line);
-    terminal.scrollTop = terminal.scrollHeight;
-
-    progress.style.width = `${(i / 40) * 100}%`;
-    i++;
-  }, 120);
+  display.classList.remove("glitch");
+  display.style.background = "black";
+  Object.values(buttons).forEach(b => b.classList.remove("active"));
 }
 
-/* RESET */
-function resetSystem(btn) {
-  fetch("/cmd/reset", { method: "POST" });
+/* ---------------- STATES ---------------- */
+function idle() {
+  clearUI();
+  light.style.background = "var(--idle)";
+  statusText.textContent = "System Idle – No Threat Detected";
+}
 
-  setActive(btn);
-  clearInterval(attackInterval);
-  document.body.className = "safe";
-
+function monitoring() {
+  clearUI();
+  buttons.monitoring.classList.add("active");
+  light.style.background = "var(--monitor)";
+  statusText.textContent = "Monitoring Network Traffic";
+  display.style.background = "#001a33";
   terminal.innerHTML =
-`Security Restored
-✔ Attack contained
+`[INFO] IDS active
+[INFO] Packet inspection running
+[INFO] No anomalies detected`;
+}
+
+function secure() {
+  clearUI();
+  buttons.secure.classList.add("active");
+  light.style.background = "var(--secure)";
+  statusText.textContent = "System Secured";
+  display.style.background = "#001f14";
+  terminal.innerHTML =
+`✔ Attack contained
 ✔ System integrity verified
-✔ Defensive layers restored
-✔ User awareness prevents breaches`;
-
-  progress.style.width = "100%";
-  statusBox.innerText = "● System Safe — All Services Normal";
-  statusBox.style.borderLeftColor = "lime";
+✔ Defensive layers restored`;
 }
 
-/* PLACEHOLDERS */
-function monitor(btn) {
-  setActive(btn);
-  terminal.innerHTML = "Monitoring network traffic...\nNo anomalies detected.";
+function attack() {
+  clearUI();
+  buttons.attack.classList.add("active");
+  light.style.background = "var(--attack)";
+  statusText.textContent = "ACTIVE CYBER ATTACK DETECTED";
+  display.style.background = "#1a0000";
+  display.classList.add("glitch");
+
+  let lines = "";
+  for (let i = 1; i <= 40; i++) {
+    lines += `[ALERT] Exploit vector ${i} injected :: MEMORY CORRUPTION\n`;
+  }
+  terminal.style.color = "red";
+  terminal.textContent = lines;
 }
 
-function secure(btn) {
-  setActive(btn);
-  terminal.innerHTML = "Secure mode enabled.\nFirewall rules enforced.";
+function video() {
+  clearUI();
+  buttons.video.classList.add("active");
+  terminal.innerHTML =
+`<video src="/static/hacking_demo.mp4" autoplay controls></video>`;
 }
 
-function playVideo(btn) {
-  setActive(btn);
-  terminal.innerHTML = "Attack video playing...\n(Video module unchanged)";
+function reset() {
+  idle();
 }
+
+/* ---------------- SOCKET COMMAND HANDLER ---------------- */
+ws.onmessage = (e) => {
+  const state = e.data;
+  if (state === "idle") idle();
+  if (state === "attack") attack();
+  if (state === "monitoring") monitoring();
+  if (state === "secure") secure();
+  if (state === "video") video();
+  if (state === "reset") reset();
+};
+
+/* DEFAULT */
+idle();
 </script>
-
 </body>
 </html>
