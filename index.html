@@ -5,11 +5,22 @@
 <title>Cybersecurity Command Simulation</title>
 
 <style>
+:root {
+    --cyan: #00ffff;
+    --bg-dark: #050505;
+    --panel-dark: #0f0f0f;
+    --danger: #ff3b3b;
+    --safe: #2aff6a;
+    --info: #3b82f6;
+    --warning: #ffcc00;
+}
+
 body {
     margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: radial-gradient(circle, #222, #000);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at center, #111, #000);
     color: #fff;
+    overflow: hidden;
 }
 
 .container {
@@ -17,162 +28,220 @@ body {
     height: 100vh;
 }
 
+/* LEFT PANEL */
 .left {
-    width: 30%;
-    background: #111;
-    padding: 20px;
-    border-right: 3px solid #333;
-}
-
-.right {
-    width: 70%;
-    padding: 20px;
-    background: #000;
-    overflow-y: auto;
+    width: 28%;
+    background: linear-gradient(180deg, #0b0b0b, #050505);
+    padding: 24px;
+    border-right: 2px solid #1f1f1f;
+    display: flex;
+    flex-direction: column;
 }
 
 h1 {
-    color: #0ff;
     text-align: center;
+    font-size: 22px;
+    color: var(--cyan);
+    margin-bottom: 24px;
+    letter-spacing: 1px;
 }
 
 .btn {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    font-size: 16px;
-    background: #222;
-    border: 1px solid #0ff;
-    color: #0ff;
+    padding: 14px;
+    margin: 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+    background: #101010;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
     cursor: pointer;
+    transition: all 0.25s ease;
 }
 
 .btn:hover {
-    background: #0ff;
+    background: var(--cyan);
     color: #000;
+    transform: translateY(-1px);
 }
 
 .status {
-    margin-top: 20px;
-    padding: 10px;
-    background: #222;
-    border-left: 5px solid lime;
+    margin-top: auto;
+    padding: 14px;
+    background: #111;
+    border-left: 5px solid var(--safe);
+    font-size: 14px;
+    letter-spacing: 0.4px;
+}
+
+/* RIGHT PANEL */
+.right {
+    width: 72%;
+    padding: 24px;
+    background: #000;
+    overflow-y: auto;
+    position: relative;
 }
 
 .log {
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.6;
     white-space: pre-line;
-    font-family: monospace;
 }
 
+/* VIDEO */
 video {
     width: 100%;
-    border: 2px solid red;
+    border-radius: 6px;
+    border: 2px solid var(--danger);
+    box-shadow: 0 0 25px rgba(255,0,0,0.25);
+}
+
+/* ANIMATION */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.blink {
+    animation: blink 1.2s infinite;
 }
 </style>
 </head>
 
 <body>
 <div class="container">
+
+    <!-- LEFT PANEL -->
     <div class="left">
-        <h1>Cybersecurity Live Demo</h1>
+        <h1>CYBERSECURITY COMMAND DEMO</h1>
 
-        <button class="btn" onclick="send('START')">Start Demo</button>
-        <button class="btn" onclick="send('BLUE')">Make Screen Blue</button>
-        <button class="btn" onclick="send('GREEN')">Make Screen Green</button>
-        <button class="btn" onclick="send('VIDEO')">Play Attack Video</button>
-        <button class="btn" onclick="send('RESET')">Reset Demo</button>
+        <button class="btn" onclick="sendCmd('START')">▶ Start Attack Simulation</button>
+        <button class="btn" onclick="sendCmd('BLUE')">🔵 Monitoring Mode</button>
+        <button class="btn" onclick="sendCmd('GREEN')">🟢 Secure Mode</button>
+        <button class="btn" onclick="sendCmd('VIDEO')">🎥 Play Attack Video</button>
+        <button class="btn" onclick="sendCmd('RESET')">⟳ Reset Demo</button>
 
-        <div class="status" id="status">System Idle</div>
+        <div class="status" id="status">System Idle • Awaiting Command</div>
     </div>
 
+    <!-- RIGHT PANEL -->
     <div class="right">
         <div id="output" class="log"></div>
     </div>
+
 </div>
 
 <script>
 const ws = new WebSocket(
-    (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
+    (location.protocol === "https:" ? "wss://" : "ws://") +
+    location.host + "/ws"
 );
 
 const output = document.getElementById("output");
-const status = document.getElementById("status");
+const statusBox = document.getElementById("status");
 
-function send(cmd) {
+/* SEND COMMAND */
+function sendCmd(cmd) {
     fetch("/cmd/" + cmd, { method: "POST" });
 }
 
-ws.onmessage = (e) => {
-    const cmd = e.data;
+/* HANDLE SERVER EVENTS */
+ws.onmessage = (event) => {
+    const cmd = event.data;
 
+    /* START ATTACK */
     if (cmd === "START") {
         document.body.style.background = "#300";
-        status.innerText = "⚠️ ACTIVE CYBER ATTACK DETECTED";
+        statusBox.innerHTML = "⚠ ACTIVE CYBER ATTACK DETECTED";
+        statusBox.style.borderLeftColor = "var(--danger)";
+        statusBox.classList.add("blink");
+
         output.innerText = "";
 
         const lines = [
-            "Initializing intrusion detection...",
+            "Initializing intrusion detection systems...",
             "Unauthorized access attempt detected",
-            "Bypassing firewall layer 1...",
-            "Exploit payload injected",
+            "Firewall rule bypass in progress",
+            "Exploit payload injected into memory",
             "Privilege escalation successful",
-            "Data exfiltration in progress",
-            "Brute-force attempt detected",
-            "Suspicious IP traced",
-            "Encrypted channel opened",
-            "Command & control server connected",
-            "Malware persistence established",
+            "Encrypted tunnel established",
+            "Command & Control server connected",
+            "Credential harvesting module loaded",
             "Keylogger activated",
-            "Credential harvesting active",
-            "System integrity compromised",
-            "Root access granted",
-            "Payload execution confirmed",
-            "Threat level: CRITICAL",
-            "Network isolation recommended",
-            "Immediate response required",
+            "Persistence mechanism installed",
+            "Lateral movement detected",
+            "Database enumeration ongoing",
+            "Sensitive files accessed",
+            "Data exfiltration in progress",
+            "Anti-forensics techniques applied",
+            "Security logs manipulated",
+            "Root-level access obtained",
+            "Threat severity elevated to CRITICAL",
+            "Incident response recommended",
             "Cyber breach simulation complete"
         ];
 
         let i = 0;
-        const interval = setInterval(() => {
-            if (i >= lines.length) return clearInterval(interval);
+        const timer = setInterval(() => {
+            if (i >= lines.length) {
+                clearInterval(timer);
+                return;
+            }
             output.innerText += lines[i++] + "\n";
-        }, 150);
+        }, 140);
     }
 
+    /* BLUE MODE */
     if (cmd === "BLUE") {
-        document.body.style.background = "#002";
-        status.innerText = "🔵 Monitoring Mode";
+        document.body.style.background = "#001c33";
+        statusBox.innerHTML = "🔵 Monitoring Mode Active";
+        statusBox.style.borderLeftColor = "var(--info)";
+        statusBox.classList.remove("blink");
     }
 
+    /* GREEN MODE */
     if (cmd === "GREEN") {
-        document.body.style.background = "#020";
-        status.innerText = "🟢 System Secure";
+        document.body.style.background = "#002610";
+        statusBox.innerHTML = "🟢 System Secure • No Threats Detected";
+        statusBox.style.borderLeftColor = "var(--safe)";
+        statusBox.classList.remove("blink");
     }
 
+    /* VIDEO */
     if (cmd === "VIDEO") {
         output.innerHTML = `
-            <video autoplay muted playsinline>
+            <video id="attackVideo" muted playsinline preload="auto">
                 <source src="/static/hacking_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
             </video>
         `;
+
+        const video = document.getElementById("attackVideo");
+        video.currentTime = 0;
+        video.play().catch(err => console.log("Autoplay blocked:", err));
     }
 
+    /* RESET */
     if (cmd === "RESET") {
         document.body.style.background = "#000";
-        status.innerText = "✔️ Threat Neutralized";
+        statusBox.innerHTML = "✔ Threat Neutralized • System Stable";
+        statusBox.style.borderLeftColor = "var(--safe)";
+        statusBox.classList.remove("blink");
 
         output.innerHTML = `
-            <h2>Security Restored</h2>
+            <h2 style="color: var(--safe);">Security Restored</h2>
             <ul>
-                <li>Continuous monitoring is essential</li>
-                <li>Zero-trust architecture recommended</li>
+                <li>Continuous monitoring is critical</li>
+                <li>Zero-trust security minimizes damage</li>
+                <li>Early detection prevents escalation</li>
                 <li>Human awareness is the strongest defense</li>
-                <li>Prevention is better than response</li>
             </ul>
         `;
     }
 };
 </script>
+
 </body>
 </html>
