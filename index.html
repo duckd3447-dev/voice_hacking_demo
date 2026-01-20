@@ -1,239 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Cyber Threat Simulation Lab</title>
+<meta charset="UTF-8">
+<title>Cyber Security System Manipulation Demo</title>
 
 <style>
-:root {
-  --green: #00ff9c;
-  --red: #ff3b3b;
-  --blue: #3ba7ff;
-  --yellow: #ffd23f;
-}
-
 body {
-  margin: 0;
-  background: radial-gradient(circle at top, #0a0f14, #000);
-  color: var(--green);
-  font-family: "Segoe UI", monospace;
-  overflow: hidden;
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #111;
+    color: #fff;
 }
 
-#header {
-  padding: 15px;
-  text-align: center;
-  font-size: 24px;
-  letter-spacing: 2px;
-  border-bottom: 1px solid #0f0;
-  text-shadow: 0 0 15px #00ff9c;
+.container {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    height: 100vh;
+    border: 8px solid #ffcc00;
+    transition: border-color 0.5s;
 }
 
-#panel {
-  display: flex;
-  justify-content: center;
-  gap: 25px;
-  margin: 20px;
+.left {
+    padding: 30px;
+    background: #1a1a1a;
 }
 
-.light {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #222;
-  box-shadow: inset 0 0 10px #000;
-  transition: all 0.3s ease;
+.right {
+    padding: 30px;
+    background: #0e1621;
+    overflow-y: auto;
 }
 
-.glow-red { background: var(--red); box-shadow: 0 0 25px var(--red); }
-.glow-green { background: var(--green); box-shadow: 0 0 25px var(--green); }
-.glow-blue { background: var(--blue); box-shadow: 0 0 25px var(--blue); }
-.glow-yellow { background: var(--yellow); box-shadow: 0 0 25px var(--yellow); }
-
-#status {
-  text-align: center;
-  font-size: 18px;
-  margin-bottom: 10px;
-  color: #aaa;
+h1 {
+    color: #00eaff;
+    margin-bottom: 5px;
 }
 
-#progress {
-  width: 60%;
-  height: 6px;
-  margin: auto;
-  background: #222;
-  border-radius: 10px;
-  overflow: hidden;
+.status {
+    margin-bottom: 30px;
+    font-size: 18px;
 }
 
-#progress span {
-  display: block;
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--yellow), var(--red));
-  animation: scan 2s infinite;
+.btn {
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #222;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
 }
 
-@keyframes scan {
-  0% { width: 0%; }
-  100% { width: 100%; }
+.indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: gray;
 }
 
-#terminal {
-  padding: 20px;
-  height: calc(100vh - 300px);
-  overflow-y: auto;
-  white-space: pre-line;
-  font-size: 14px;
-  border-top: 1px solid #0f0;
+.active {
+    background: #00ff66;
 }
 
-#hackVideo {
-  display: none;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.log {
+    color: #ff4d4d;
+    font-family: monospace;
+    white-space: pre-line;
+}
+
+video {
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 20px;
+    display: none;
 }
 </style>
 </head>
 
 <body>
 
-<div id="header">CYBER THREAT SIMULATION LAB</div>
+<div class="container" id="frame">
 
-<div id="panel">
-  <div id="red" class="light"></div>
-  <div id="green" class="light"></div>
-  <div id="blue" class="light"></div>
+    <div class="left">
+        <h1>Cyber Security Demo</h1>
+        <div class="status" id="status">System Status: No Active Threat</div>
+
+        <div class="btn">Start Demo <span id="iStart" class="indicator"></span></div>
+        <div class="btn">Make Screen Blue <span id="iBlue" class="indicator"></span></div>
+        <div class="btn">Reset Demo <span id="iReset" class="indicator"></span></div>
+    </div>
+
+    <div class="right" id="output">
+        <p>System standing by...</p>
+        <video id="video" controls></video>
+    </div>
+
 </div>
-
-<div id="status">System Monitoring Active — No Immediate Threats</div>
-
-<div id="progress"><span></span></div>
-
-<div id="terminal">
-⚠️ This is a cybersecurity awareness demonstration.
-No real systems are attacked.
-</div>
-
-<video id="hackVideo" src="hacking_demo.mp4" muted autoplay playsinline></video>
 
 <script>
-const terminal = document.getElementById("terminal");
-const statusText = document.getElementById("status");
-const video = document.getElementById("hackVideo");
+const ws = new WebSocket(
+    (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
+);
 
-const red = document.getElementById("red");
-const green = document.getElementById("green");
-const blue = document.getElementById("blue");
+const output = document.getElementById("output");
+const frame = document.getElementById("frame");
+const status = document.getElementById("status");
+const video = document.getElementById("video");
 
-let socket;
-let lastCommand = "IDLE";
-
-function clearLights() {
-  red.className = "light";
-  green.className = "light";
-  blue.className = "light";
+function indicator(id) {
+    document.getElementById(id).classList.add("active");
 }
 
-function log(text) {
-  terminal.textContent += "\n" + text;
-  terminal.scrollTop = terminal.scrollHeight;
-}
+ws.onmessage = (e) => {
+    const cmd = e.data;
 
-function hackingSimulation() {
-  lastCommand = "START";
-  terminal.textContent = "";
-  statusText.textContent = "⚠️ INTRUSION DETECTED — LIVE ATTACK SIMULATION";
-  clearLights();
-  red.classList.add("glow-red");
+    if (cmd === "START") {
+        frame.style.borderColor = "red";
+        status.innerText = "⚠ ACTIVE CYBER ATTACK DETECTED";
+        indicator("iStart");
 
-  const lines = [
-    "[INIT] Threat engine activated",
-    "[SCAN] Enumerating network ports",
-    "[DETECT] Unauthorized SSH access",
-    "[ALERT] Malicious payload injected",
-    "[BYPASS] Firewall evasion detected",
-    "[ESCALATE] Privilege escalation success",
-    "[ACCESS] Root access obtained",
-    "[EXTRACT] Sensitive data located",
-    "[TRANSFER] Data exfiltration in progress",
-    "[COMPLETE] Attack simulation finished"
-  ];
+        output.innerHTML = "<div class='log'>" +
+            Array.from({length:20},(_,i)=>`[${i+1}] Unauthorized access attempt detected...`).join("\n") +
+            "</div>";
+    }
 
-  let i = 0;
-  const interval = setInterval(() => {
-    log(lines[i]);
-    i++;
-    if (i >= lines.length) clearInterval(interval);
-  }, 350);
-}
+    if (cmd === "BLUE") {
+        frame.style.borderColor = "#00aaff";
+        indicator("iBlue");
+    }
 
-function playVideo() {
-  lastCommand = "VIDEO";
-  terminal.textContent = "";
-  statusText.textContent = "Visual Breach Footage Playback";
-  clearLights();
-  blue.classList.add("glow-blue");
-  video.style.display = "block";
-  video.currentTime = 0;
-  video.play().catch(()=>{});
-}
+    if (cmd === "VIDEO") {
+        video.src = "/static/hacking_demo.mp4";
+        video.style.display = "block";
+        video.muted = false;
+        video.play();
+    }
 
-function resetDemo() {
-  lastCommand = "RESET";
-  video.pause();
-  video.style.display = "none";
-  clearLights();
-  red.classList.add("glow-yellow");
-  green.classList.add("glow-yellow");
-  blue.classList.add("glow-yellow");
+    if (cmd === "RESET") {
+        frame.style.borderColor = "#ffcc00";
+        status.innerText = "System Secure";
+        indicator("iReset");
 
-  statusText.textContent = "System Reset — Defensive Awareness Mode";
-  terminal.textContent =
-`✔ Cyber attacks often succeed due to:
-- Weak passwords
-- Phishing links
-- Unsecured public networks
-
-🔐 Stay informed. Stay secure.
-
-Project: Live Cybersecurity Threat Awareness Demo`;
-}
-
-function applyCommand(cmd) {
-  cmd = cmd.toUpperCase();
-
-  if (cmd === "START") hackingSimulation();
-  if (cmd === "RED") { lastCommand="RED"; clearLights(); red.classList.add("glow-red"); }
-  if (cmd === "GREEN") { lastCommand="GREEN"; clearLights(); green.classList.add("glow-green"); statusText.textContent="Threat Neutralized — System Stable"; }
-  if (cmd === "BLUE") { lastCommand="BLUE"; clearLights(); blue.classList.add("glow-blue"); statusText.textContent="Security Response Engaged"; }
-  if (cmd === "VIDEO") playVideo();
-  if (cmd === "RESET") resetDemo();
-}
-
-function connectWebSocket() {
-  const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
-  socket = new WebSocket(wsProtocol + location.host + "/ws");
-
-  socket.onopen = () => {
-    console.log("WebSocket connected");
-    applyCommand(lastCommand); // restore state without refresh
-  };
-
-  socket.onmessage = (event) => {
-    applyCommand(event.data);
-  };
-
-  socket.onclose = () => {
-    console.log("WebSocket disconnected — reconnecting...");
-    setTimeout(connectWebSocket, 1500); // auto reconnect
-  };
-
-  socket.onerror = () => socket.close();
-}
-
-connectWebSocket();
+        output.innerHTML = `
+        <h2>System Restored</h2>
+        <ul>
+            <li>Threat detected and neutralized</li>
+            <li>Unauthorized access prevented</li>
+            <li>Security layers validated</li>
+        </ul>`;
+        video.pause();
+        video.style.display = "none";
+    }
+};
 </script>
 
 </body>
