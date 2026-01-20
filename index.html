@@ -138,7 +138,7 @@ video {
     <button class="btn">🎥 Play Video</button>
     <button class="btn">⟳ Reset</button>
 
-    <div class="status" id="status">
+    <div class="status">
       <div class="lights">
         <span id="y"></span>
         <span id="r"></span>
@@ -156,13 +156,33 @@ video {
 </div>
 
 <script>
-const ws = new WebSocket(
-  (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
-);
+/* =======================
+   WEBSOCKET CONNECTION
+======================= */
+
+const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
+const ws = new WebSocket(wsProtocol + location.host + "/ws");
+
+ws.onopen = () => {
+  console.log("✅ WebSocket connected");
+};
+
+ws.onerror = (e) => {
+  console.error("❌ WebSocket error", e);
+};
+
+ws.onclose = () => {
+  console.warn("⚠ WebSocket closed");
+};
+
+/* =======================
+   ELEMENT REFERENCES
+======================= */
 
 const output = document.getElementById("output");
 const bar = document.getElementById("bar");
 const statusText = document.getElementById("statusText");
+
 const lights = {
   y: document.getElementById("y"),
   r: document.getElementById("r"),
@@ -174,31 +194,46 @@ function clearLights() {
   Object.values(lights).forEach(l => l.className = "");
 }
 
+/* =======================
+   HACKING SIMULATION
+======================= */
+
 function hackingLines() {
   output.innerHTML = "";
   output.className = "terminal";
-  const lines = Array.from({length: 40}, (_, i) =>
-    `[${i}] Unauthorized process detected – PID ${Math.floor(Math.random()*9000)}`
+
+  const lines = Array.from({ length: 40 }, (_, i) =>
+    `[${i}] Unauthorized process detected — PID ${Math.floor(Math.random() * 9000)}`
   );
+
   let i = 0;
   const t = setInterval(() => {
-    if (i >= lines.length) return clearInterval(t);
+    if (i >= lines.length) {
+      clearInterval(t);
+      return;
+    }
     output.innerText += lines[i++] + "\n";
   }, 80);
 }
 
-ws.onmessage = e => {
+/* =======================
+   STATE HANDLER
+======================= */
+
+ws.onmessage = (e) => {
   const state = e.data;
+  console.log("📡 State received:", state);
+
   document.body.className = "";
   clearLights();
   bar.style.width = "0%";
   output.className = "";
+  output.innerHTML = "";
 
   if (state === "idle") {
     document.body.classList.add("idle");
     lights.y.classList.add("yellow");
     statusText.innerText = "🟡 System Idle – No Threat";
-    output.innerText = "";
   }
 
   if (state === "attack") {
@@ -214,7 +249,7 @@ ws.onmessage = e => {
     lights.b.classList.add("blue");
     statusText.innerText = "🔵 Monitoring Network";
     bar.style.width = "40%";
-    output.innerText = "Monitoring traffic...\nNo anomalies yet.";
+    output.innerText = "Monitoring traffic...\nNo anomalies detected.";
   }
 
   if (state === "secure") {
