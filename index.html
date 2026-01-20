@@ -1,275 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cyber Security Voice Controlled Demo</title>
+  <meta charset="UTF-8" />
+  <title>Cybersecurity Threat Simulation</title>
 
-<style>
-body {
-    margin: 0;
-    background: radial-gradient(circle at top, #0b1622, #05080d);
-    color: #e6f1ff;
-    font-family: "Segoe UI", Consolas, monospace;
-}
-
-/* ================= FRAME ================= */
-.frame {
-    margin: 25px;
-    height: calc(100vh - 50px);
-    border-radius: 18px;
-    border: 3px solid #00e5ff;
-    box-shadow: 0 0 25px #00e5ff;
-    padding: 25px;
-    transition: 0.5s;
-}
-
-.frame.yellow {
-    border-color: #ffd000;
-    box-shadow: 0 0 30px #ffd000;
-}
-.frame.green {
-    border-color: #00ff88;
-    box-shadow: 0 0 30px #00ff88;
-}
-.frame.blue {
-    border-color: #4da6ff;
-    box-shadow: 0 0 30px #4da6ff;
-}
-
-/* ================= HEADER ================= */
-h1 {
-    text-align: center;
-    margin: 0;
-    color: #7ffcff;
-}
-
-.subtitle {
-    text-align: center;
-    opacity: 0.7;
-    margin-bottom: 20px;
-}
-
-/* ================= LAYOUT ================= */
-.container {
-    display: grid;
-    grid-template-columns: 1fr 1.3fr;
-    gap: 20px;
-    height: calc(100% - 80px);
-}
-
-.panel {
-    background: rgba(10, 20, 35, 0.95);
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: inset 0 0 20px rgba(0,229,255,0.15);
-}
-
-/* ================= LEFT ================= */
-.status {
-    font-size: 18px;
-    margin-bottom: 15px;
-}
-
-.commands div {
-    padding: 12px;
-    margin-bottom: 10px;
-    border-left: 4px solid #00e5ff;
-    background: rgba(0,229,255,0.08);
-    border-radius: 6px;
-}
-
-.commands div.active {
-    background: rgba(255, 208, 0, 0.25);
-    border-left-color: #ffd000;
-}
-
-/* ================= TERMINAL ================= */
-.terminal {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;              /* 🔧 FIX 1 */
-    font-size: 14px;
-    color: #ff4d4d;
-    display: none;
-    white-space: pre-wrap;           /* 🔧 FIX 1 */
-    word-break: break-word;          /* 🔧 FIX 1 */
-}
-
-.terminal span {
-    display: block;
-    margin-bottom: 6px;
-}
-
-/* ================= AWARENESS ================= */
-.awareness {
-    display: none;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #cfe9ff;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-/* ================= MOBILE RESPONSIVE ================= */
-@media (max-width: 768px) {
-
-    .frame {
-        margin: 12px;
-        padding: 15px;
-        height: auto;
+  <style>
+    :root {
+      --safe: #f5c400;
+      --danger: #b00020;
+      --green: #0f9d58;
+      --blue: #1a73e8;
     }
 
-    .container {
-        grid-template-columns: 1fr;
-        height: auto;
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #111;
+      color: white;
+      font-family: "Courier New", monospace;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
     }
 
-    h1 {
-        font-size: 20px;
+    /* LEFT PANEL */
+    #left {
+      background: #000;
+      border-right: 2px solid #222;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
     }
 
-    .subtitle {
-        font-size: 13px;
+    #statusLight {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--safe);
+      box-shadow: 0 0 15px var(--safe);
+      margin-bottom: 10px;
     }
 
-    .terminal {
-        max-height: 260px;
-        font-size: 13px;
+    #statusText {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
     }
-}
 
-</style>
+    #terminal {
+      flex: 1;
+      background: #050505;
+      border: 1px solid #222;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      color: #ff4d4d;
+      display: none;
+    }
+
+    /* RIGHT PANEL */
+    #right {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    #message {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 80%;
+      max-width: 720px;
+      border: 3px solid #333;
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="frame yellow" id="frame">
-<h1>Cyber Security Voice Controlled Demo</h1>
-<div class="subtitle">Demonstrating Voice-Based System Manipulation</div>
+  <div id="left">
+    <div id="statusLight"></div>
+    <div id="statusText">STATUS: NO ACTIVE THREAT</div>
+    <div id="terminal"></div>
+  </div>
 
-<div class="container">
+  <div id="right">
+    <div id="message">System operating under normal parameters.</div>
+    <video id="video" controls>
+      <source src="hacking_demo.mp4" type="video/mp4" />
+    </video>
+  </div>
 
-<!-- LEFT -->
-<div class="panel">
-<div class="status" id="status">System Status: No Active Threat Detected</div>
+  <script>
+    const ws = new WebSocket(
+      (location.protocol === "https:" ? "wss://" : "ws://") +
+      location.host +
+      "/ws"
+    );
 
-<div class="commands">
-<div id="cmdStart">🎙 Start Demo</div>
-<div id="cmdGreen">🟢 Make Screen Green</div>
-<div id="cmdBlue">🔵 Make Screen Blue</div>
-<div id="cmdReset">🔄 Reset Demo</div>
-</div>
-</div>
+    const statusLight = document.getElementById("statusLight");
+    const statusText = document.getElementById("statusText");
+    const terminal = document.getElementById("terminal");
+    const message = document.getElementById("message");
+    const video = document.getElementById("video");
 
-<!-- RIGHT -->
-<div class="panel">
-<div class="terminal" id="terminal"></div>
-<div class="awareness" id="awareness">
-<strong>Cybersecurity Awareness Message</strong><br><br>
-This demonstration shows how modern systems can be manipulated through
-voice-based interfaces when adequate security controls are not in place.
-As voice assistants and smart systems become more common, attackers may
-exploit weak authentication, poor validation, or excessive permissions.
-<br><br>
-<strong>Key Takeaway:</strong><br>
-Always implement multi-factor authentication, strict command validation,
-and continuous monitoring to protect systems from unauthorized access.
-Cybersecurity is not optional — it is essential.
-</div>
-</div>
+    const hackingLines = [
+      "[!] Unauthorized access detected on port 443",
+      "[*] Injecting payload into session buffer",
+      "[!] Firewall bypass successful",
+      "[*] Enumerating user privileges",
+      "[!] Root access granted",
+      "[*] Dumping credential hashes",
+      "[!] AES key extracted",
+      "[*] Establishing reverse shell",
+      "[!] Data exfiltration in progress",
+      "[*] Spoofing internal DNS records",
+      "[!] Lateral movement detected",
+      "[*] Deploying ransomware module",
+      "[!] SOC alerts suppressed",
+      "[*] Command-and-control channel active",
+      "[!] Kernel exploit executed",
+      "[*] Log files erased",
+      "[!] Persistence mechanism installed",
+      "[*] Memory injection complete",
+      "[!] Threat escalation level CRITICAL",
+      "[*] Attack sequence complete"
+    ];
 
-</div>
-</div>
+    function startDemo() {
+      statusLight.style.background = "var(--danger)";
+      statusLight.style.boxShadow = "0 0 20px var(--danger)";
+      statusText.innerText = "STATUS: ACTIVE CYBER ATTACK";
+      message.innerText = "⚠️ SECURITY BREACH DETECTED";
+      terminal.style.display = "block";
+      terminal.innerHTML = "";
+      video.style.display = "none";
 
-<script>
-const ws = new WebSocket(
-  (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
-);
-
-const frame = document.getElementById("frame");
-const status = document.getElementById("status");
-const terminal = document.getElementById("terminal");
-const awareness = document.getElementById("awareness");
-
-const cmdStart = document.getElementById("cmdStart");
-const cmdGreen = document.getElementById("cmdGreen");
-const cmdBlue = document.getElementById("cmdBlue");
-const cmdReset = document.getElementById("cmdReset");
-
-let timer;
-
-const attackLines = [
-"Connection established from external node 185.231.44.19",
-"Firewall policy bypass detected",
-"Unauthorized privilege escalation successful",
-"Credential harvesting module initialized",
-"Remote shell session established",
-"Sensitive configuration files accessed",
-"Outbound data transfer initiated",
-"Persistence mechanism injected into system",
-"Command and control channel active"
-];
-
-function clearActive() {
-    [cmdStart, cmdGreen, cmdBlue, cmdReset].forEach(c => c.classList.remove("active"));
-}
-
-function startAttack() {
-    terminal.style.display = "block";
-    awareness.style.display = "none";
-    terminal.innerHTML = "";
-    let i = 0;
-
-    timer = setInterval(() => {
-        const line = document.createElement("span");
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${attackLines[i++ % attackLines.length]}`;
-        terminal.appendChild(line);
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= hackingLines.length) {
+          clearInterval(interval);
+          return;
+        }
+        terminal.innerHTML += hackingLines[i] + "<br>";
         terminal.scrollTop = terminal.scrollHeight;
-    }, 400);
-}
-
-function resetDemo() {
-    clearInterval(timer);
-    terminal.style.display = "none";
-    terminal.innerHTML = "";
-    awareness.style.display = "block";
-    status.innerText = "System Status: No Active Threat Detected";
-    frame.className = "frame yellow";
-    clearActive();
-}
-
-ws.onmessage = e => {
-    const cmd = e.data;
-
-    if (cmd === "START_DEMO") {
-        status.innerText = "⚠ SYSTEM UNDER ACTIVE ATTACK";
-        frame.className = "frame yellow";
-        clearActive();
-        cmdStart.classList.add("active");
-        startAttack();
+        i++;
+      }, 300);
     }
 
-    if (cmd === "GREEN") {
-        frame.className = "frame green";
-        clearActive();
-        cmdGreen.classList.add("active");
+    function setColor(color, text) {
+      statusLight.style.background = color;
+      statusLight.style.boxShadow = 0 0 20px ${color};
+      statusText.innerText = text;
+      message.innerText = text;
+      terminal.style.display = "none";
+      video.style.display = "none";
     }
 
-    if (cmd === "BLUE") {
-        frame.className = "frame blue";
-        clearActive();
-        cmdBlue.classList.add("active");
+    function resetDemo() {
+      setColor("var(--safe)", "STATUS: NO ACTIVE THREAT");
+      message.innerText = "Awareness is the first line of defense.";
     }
 
-    if (cmd === "RESET") {
-        clearActive();
-        cmdReset.classList.add("active");
-        resetDemo();
-    }
-};
-</script>
+    ws.onmessage = (e) => {
+      const cmd = e.data;
+
+      if (cmd === "START_DEMO") startDemo();
+      if (cmd === "GREEN") setColor("var(--green)", "SYSTEM SECURE");
+      if (cmd === "BLUE") setColor("var(--blue)", "SYSTEM MONITORING MODE");
+
+      if (cmd === "VIDEO") {
+        terminal.style.display = "none";
+        statusText.innerText = "INCIDENT FOOTAGE";
+        message.innerText = "Recorded cyber attack simulation";
+        video.style.display = "block";
+        video.play();
+      }
+
+      if (cmd === "RESET") resetDemo();
+    };
+  </script>
 
 </body>
 </html>
-
-
-
-
