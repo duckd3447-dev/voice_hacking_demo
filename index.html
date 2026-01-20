@@ -2,188 +2,175 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cybersecurity Threat Simulation</title>
-
+  <title>Cyber Security Live Demo</title>
   <style>
-    :root {
-      --safe: #f5c400;
-      --danger: #b00020;
-      --green: #0f9d58;
-      --blue: #1a73e8;
-    }
-
     body {
       margin: 0;
-      height: 100vh;
+      background: black;
+      color: #00ff00;
+      font-family: monospace;
+      overflow: hidden;
+    }
+
+    #header {
+      padding: 10px;
+      text-align: center;
+      font-size: 22px;
       background: #111;
-      color: white;
-      font-family: "Courier New", monospace;
-      display: grid;
-      grid-template-columns: 1fr 2fr;
+      border-bottom: 2px solid #0f0;
     }
 
-    /* LEFT PANEL */
-    #left {
-      background: #000;
-      border-right: 2px solid #222;
-      padding: 20px;
+    #lights {
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+      margin: 15px;
     }
 
-    #statusLight {
-      width: 20px;
-      height: 20px;
+    .light {
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
-      background: var(--safe);
-      box-shadow: 0 0 15px var(--safe);
-      margin-bottom: 10px;
-    }
-
-    #statusText {
-      font-size: 1.2rem;
-      margin-bottom: 20px;
+      background: #333;
     }
 
     #terminal {
-      flex: 1;
-      background: #050505;
-      border: 1px solid #222;
-      padding: 10px;
+      padding: 15px;
+      height: calc(100vh - 160px);
       overflow-y: auto;
-      font-size: 0.85rem;
-      color: #ff4d4d;
+      white-space: pre-line;
+    }
+
+    #hackVideo {
       display: none;
-    }
-
-    /* RIGHT PANEL */
-    #right {
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    #message {
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-
-    video {
-      width: 80%;
-      max-width: 720px;
-      border: 3px solid #333;
-      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
   </style>
 </head>
-
 <body>
 
-  <div id="left">
-    <div id="statusLight"></div>
-    <div id="statusText">STATUS: NO ACTIVE THREAT</div>
-    <div id="terminal"></div>
+  <div id="header">CYBER SECURITY AWARENESS DEMO</div>
+
+  <div id="lights">
+    <div class="light" id="redLight"></div>
+    <div class="light" id="greenLight"></div>
+    <div class="light" id="blueLight"></div>
   </div>
 
-  <div id="right">
-    <div id="message">System operating under normal parameters.</div>
-    <video id="video" controls>
-      <source src="hacking_demo.mp4" type="video/mp4" />
-    </video>
+  <div id="terminal">
+    ⚠️ This is a simulated cybersecurity awareness demo.  
+    No real hacking is performed.
   </div>
 
-  <script>
-    const ws = new WebSocket(
-      (location.protocol === "https:" ? "wss://" : "ws://") +
-      location.host +
-      "/ws"
-    );
+  <!-- VIDEO -->
+  <video
+    id="hackVideo"
+    src="hacking_demo.mp4"
+    muted
+    autoplay
+    playsinline
+    preload="auto"
+  ></video>
 
-    const statusLight = document.getElementById("statusLight");
-    const statusText = document.getElementById("statusText");
-    const terminal = document.getElementById("terminal");
-    const message = document.getElementById("message");
-    const video = document.getElementById("video");
+<script>
+  const terminal = document.getElementById("terminal");
+  const video = document.getElementById("hackVideo");
 
-    const hackingLines = [
-      "[!] Unauthorized access detected on port 443",
-      "[*] Injecting payload into session buffer",
-      "[!] Firewall bypass successful",
-      "[*] Enumerating user privileges",
-      "[!] Root access granted",
-      "[*] Dumping credential hashes",
-      "[!] AES key extracted",
-      "[*] Establishing reverse shell",
-      "[!] Data exfiltration in progress",
-      "[*] Spoofing internal DNS records",
-      "[!] Lateral movement detected",
-      "[*] Deploying ransomware module",
-      "[!] SOC alerts suppressed",
-      "[*] Command-and-control channel active",
-      "[!] Kernel exploit executed",
-      "[*] Log files erased",
-      "[!] Persistence mechanism installed",
-      "[*] Memory injection complete",
-      "[!] Threat escalation level CRITICAL",
-      "[*] Attack sequence complete"
+  const red = document.getElementById("redLight");
+  const green = document.getElementById("greenLight");
+  const blue = document.getElementById("blueLight");
+
+  function clearLights() {
+    red.style.background = "#333";
+    green.style.background = "#333";
+    blue.style.background = "#333";
+  }
+
+  function log(text) {
+    terminal.textContent += "\n" + text;
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  function hackingSimulation() {
+    terminal.textContent = "";
+    const lines = [
+      "[+] Initializing exploit framework...",
+      "[+] Scanning open ports on target...",
+      "[+] Port 22 OPEN (SSH)",
+      "[+] Port 80 OPEN (HTTP)",
+      "[+] Injecting payload...",
+      "[+] Bypassing firewall rules...",
+      "[+] Escalating privileges...",
+      "[+] Access granted: root",
+      "[+] Dumping credentials...",
+      "[+] Extracting sensitive data...",
+      "[+] Uploading data to secure node...",
+      "[+] Covering tracks...",
+      "[+] Attack simulation complete"
     ];
 
-    function startDemo() {
-      statusLight.style.background = "var(--danger)";
-      statusLight.style.boxShadow = "0 0 20px var(--danger)";
-      statusText.innerText = "STATUS: ACTIVE CYBER ATTACK";
-      message.innerText = "⚠️ SECURITY BREACH DETECTED";
-      terminal.style.display = "block";
-      terminal.innerHTML = "";
-      video.style.display = "none";
+    let i = 0;
+    const interval = setInterval(() => {
+      log(lines[i]);
+      i++;
+      if (i >= lines.length) clearInterval(interval);
+    }, 350);
+  }
 
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i >= hackingLines.length) {
-          clearInterval(interval);
-          return;
-        }
-        terminal.innerHTML += hackingLines[i] + "<br>";
-        terminal.scrollTop = terminal.scrollHeight;
-        i++;
-      }, 300);
+  function playVideo() {
+    terminal.textContent = "";
+    video.style.display = "block";
+    video.currentTime = 0;
+    video.play().catch(() => {});
+  }
+
+  function resetDemo() {
+    video.pause();
+    video.style.display = "none";
+    terminal.textContent =
+      "⚠️ Cyber attacks happen due to weak passwords, phishing links, and unsafe networks.\n\nStay alert. Stay secure.";
+    clearLights();
+  }
+
+  // 🔌 WebSocket
+  const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
+  const ws = new WebSocket(wsProtocol + location.host + "/ws");
+
+  ws.onmessage = (event) => {
+    const cmd = event.data.toUpperCase();
+
+    if (cmd === "START") {
+      clearLights();
+      red.style.background = "red";
+      hackingSimulation();
     }
 
-    function setColor(color, text) {
-      statusLight.style.background = color;
-      statusLight.style.boxShadow = 0 0 20px ${color};
-      statusText.innerText = text;
-      message.innerText = text;
-      terminal.style.display = "none";
-      video.style.display = "none";
+    if (cmd === "RED") {
+      clearLights();
+      red.style.background = "red";
     }
 
-    function resetDemo() {
-      setColor("var(--safe)", "STATUS: NO ACTIVE THREAT");
-      message.innerText = "Awareness is the first line of defense.";
+    if (cmd === "GREEN") {
+      clearLights();
+      green.style.background = "green";
     }
 
-    ws.onmessage = (e) => {
-      const cmd = e.data;
+    if (cmd === "BLUE") {
+      clearLights();
+      blue.style.background = "blue";
+    }
 
-      if (cmd === "START_DEMO") startDemo();
-      if (cmd === "GREEN") setColor("var(--green)", "SYSTEM SECURE");
-      if (cmd === "BLUE") setColor("var(--blue)", "SYSTEM MONITORING MODE");
+    if (cmd === "VIDEO") {
+      playVideo();
+    }
 
-      if (cmd === "VIDEO") {
-        terminal.style.display = "none";
-        statusText.innerText = "INCIDENT FOOTAGE";
-        message.innerText = "Recorded cyber attack simulation";
-        video.style.display = "block";
-        video.play();
-      }
-
-      if (cmd === "RESET") resetDemo();
-    };
-  </script>
+    if (cmd === "RESET") {
+      resetDemo();
+    }
+  };
+</script>
 
 </body>
 </html>
