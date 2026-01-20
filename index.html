@@ -76,7 +76,6 @@ video {
     <div class="left">
         <h1>CYBERSECURITY COMMAND<br>DEMO</h1>
 
-        <!-- Buttons are VISUAL ONLY -->
         <button class="btn">▶ Start Attack Simulation</button>
         <button class="btn">🔵 Monitoring Mode</button>
         <button class="btn">🟢 Secure Mode</button>
@@ -92,97 +91,104 @@ video {
 </div>
 
 <script>
-const ws = new WebSocket(
-    (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
-);
+let lastCmd = "";
 
 const output = document.getElementById("output");
 const status = document.getElementById("status");
 
-ws.onmessage = (e) => {
-    const cmd = e.data;
+async function poll() {
+    try {
+        const res = await fetch("/state");
+        const data = await res.json();
+        const cmd = data.state;
 
-    if (cmd === "idle") {
-        document.body.style.background = "#222";
-        status.innerText = "🟡 System Idle – No Threat Detected";
-        status.style.borderLeftColor = "yellow";
-        output.innerHTML = "";
-    }
+        if (cmd === lastCmd) return;
+        lastCmd = cmd;
 
-    if (cmd === "attack") {
-        document.body.style.background = "#300";
-        status.innerText = "🔴 ACTIVE CYBER ATTACK DETECTED";
-        status.style.borderLeftColor = "red";
-        output.innerText = "";
+        if (cmd === "idle") {
+            document.body.style.background = "#222";
+            status.innerText = "🟡 System Idle – No Threat Detected";
+            status.style.borderLeftColor = "yellow";
+            output.innerHTML = "";
+        }
 
-        const lines = [
-            "Initializing intrusion detection...",
-            "Unauthorized access detected",
-            "Firewall bypass attempt",
-            "Exploit payload injected",
-            "Privilege escalation successful",
-            "Suspicious process spawned",
-            "Data exfiltration in progress",
-            "Command & control connected",
-            "Persistence mechanism installed",
-            "Credential harvesting active",
-            "Keylogger running",
-            "Root access achieved",
-            "System integrity compromised",
-            "Encrypted tunnel established",
-            "Malware spreading laterally",
-            "Zero-day exploit executed",
-            "Threat level: CRITICAL",
-            "Incident response required",
-            "Network isolation advised",
-            "Attack simulation complete"
-        ];
+        if (cmd === "attack") {
+            document.body.style.background = "#300";
+            status.innerText = "🔴 ACTIVE CYBER ATTACK DETECTED";
+            status.style.borderLeftColor = "red";
+            output.innerText = "";
 
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i >= lines.length) return clearInterval(interval);
-            output.innerText += lines[i++] + "\n";
-        }, 140);
-    }
+            const lines = [
+                "Initializing intrusion detection...",
+                "Unauthorized access detected",
+                "Firewall bypass attempt",
+                "Exploit payload injected",
+                "Privilege escalation successful",
+                "Suspicious process spawned",
+                "Data exfiltration in progress",
+                "Command & control connected",
+                "Persistence mechanism installed",
+                "Credential harvesting active",
+                "Keylogger running",
+                "Root access achieved",
+                "System integrity compromised",
+                "Encrypted tunnel established",
+                "Malware spreading laterally",
+                "Zero-day exploit executed",
+                "Threat level: CRITICAL",
+                "Incident response required",
+                "Network isolation advised",
+                "Attack simulation complete"
+            ];
 
-    if (cmd === "monitoring") {
-        document.body.style.background = "#002";
-        status.innerText = "🔵 Monitoring Mode – Traffic Observed";
-        status.style.borderLeftColor = "cyan";
-        output.innerHTML = "";
-    }
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= lines.length) return clearInterval(interval);
+                output.innerText += lines[i++] + "\n";
+            }, 140);
+        }
 
-    if (cmd === "secure") {
-        document.body.style.background = "#020";
-        status.innerText = "🟢 Secure Mode – System Protected";
-        status.style.borderLeftColor = "lime";
-        output.innerHTML = "";
-    }
+        if (cmd === "monitoring") {
+            document.body.style.background = "#002";
+            status.innerText = "🔵 Monitoring Mode – Traffic Observed";
+            status.style.borderLeftColor = "cyan";
+            output.innerHTML = "";
+        }
 
-    if (cmd === "video") {
-        output.innerHTML = `
-            <video autoplay muted playsinline>
-                <source src="/static/hacking_demo.mp4" type="video/mp4">
-            </video>
-        `;
-    }
+        if (cmd === "secure") {
+            document.body.style.background = "#020";
+            status.innerText = "🟢 Secure Mode – System Protected";
+            status.style.borderLeftColor = "lime";
+            output.innerHTML = "";
+        }
 
-    if (cmd === "reset") {
-        document.body.style.background = "#000";
-        status.innerText = "✔ Threat Neutralized";
-        status.style.borderLeftColor = "lime";
+        if (cmd === "video") {
+            output.innerHTML = `
+                <video autoplay muted playsinline>
+                    <source src="/static/hacking_demo.mp4" type="video/mp4">
+                </video>
+            `;
+        }
 
-        output.innerHTML = `
-            <h2>Security Restored</h2>
-            <ul>
-                <li>Attack detected and contained</li>
-                <li>Regular updates prevent breaches</li>
-                <li>User awareness is critical</li>
-                <li>Prevention is stronger than response</li>
-            </ul>
-        `;
-    }
-};
+        if (cmd === "reset") {
+            document.body.style.background = "#000";
+            status.innerText = "✔ Threat Neutralized";
+            status.style.borderLeftColor = "lime";
+
+            output.innerHTML = `
+                <h2>Security Restored</h2>
+                <ul>
+                    <li>Attack detected and contained</li>
+                    <li>Regular updates prevent breaches</li>
+                    <li>User awareness is critical</li>
+                    <li>Prevention is stronger than response</li>
+                </ul>
+            `;
+        }
+    } catch (e) {}
+}
+
+setInterval(poll, 1000);
 </script>
 </body>
 </html>
