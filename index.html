@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Cybersecurity Command Demo</title>
 
+<!-- Stylish font for middle panel text -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 body {
   margin: 0;
@@ -123,6 +126,14 @@ video {
   width: 100%;
   border: 3px solid red;
 }
+
+/* Stylish middle-panel text */
+.cyber-text {
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+}
 </style>
 </head>
 
@@ -156,28 +167,8 @@ video {
 </div>
 
 <script>
-/* =======================
-   WEBSOCKET CONNECTION
-======================= */
-
 const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
 const ws = new WebSocket(wsProtocol + location.host + "/ws");
-
-ws.onopen = () => {
-  console.log("✅ WebSocket connected");
-};
-
-ws.onerror = (e) => {
-  console.error("❌ WebSocket error", e);
-};
-
-ws.onclose = () => {
-  console.warn("⚠ WebSocket closed");
-};
-
-/* =======================
-   ELEMENT REFERENCES
-======================= */
 
 const output = document.getElementById("output");
 const bar = document.getElementById("bar");
@@ -193,10 +184,6 @@ const lights = {
 function clearLights() {
   Object.values(lights).forEach(l => l.className = "");
 }
-
-/* =======================
-   HACKING SIMULATION
-======================= */
 
 function hackingLines() {
   output.innerHTML = "";
@@ -216,13 +203,8 @@ function hackingLines() {
   }, 80);
 }
 
-/* =======================
-   STATE HANDLER
-======================= */
-
 ws.onmessage = (e) => {
   const state = e.data;
-  console.log("📡 State received:", state);
 
   document.body.className = "";
   clearLights();
@@ -249,7 +231,12 @@ ws.onmessage = (e) => {
     lights.b.classList.add("blue");
     statusText.innerText = "🔵 Monitoring Network";
     bar.style.width = "40%";
-    output.innerText = "Monitoring traffic...\nNo anomalies detected.";
+    output.innerHTML = `
+      <div class="cyber-text">
+        Continuous packet inspection in progress.<br>
+        Traffic patterns analyzed in real time.<br>
+        No abnormal behavior detected across endpoints.
+      </div>`;
   }
 
   if (state === "secure") {
@@ -257,7 +244,12 @@ ws.onmessage = (e) => {
     lights.g.classList.add("green");
     statusText.innerText = "🟢 System Secure";
     bar.style.width = "100%";
-    output.innerText = "Threat neutralized.\nSystem secured.";
+    output.innerHTML = `
+      <div class="cyber-text">
+        Threat successfully neutralized.<br>
+        Security controls enforced and verified.<br>
+        System integrity restored and monitored.
+      </div>`;
   }
 
   if (state === "video") {
@@ -272,13 +264,22 @@ ws.onmessage = (e) => {
     lights.y.classList.add("yellow");
     statusText.innerText = "✔ Demo Reset";
     output.innerHTML = `
-      <h2>Security Restored</h2>
-      <ul>
-        <li>Attack detected</li>
-        <li>Response executed</li>
-        <li>System hardened</li>
-        <li>User awareness matters</li>
-      </ul>`;
+      <div class="cyber-text">
+        <h2>What This Demo Teaches Us</h2>
+        <p>
+          Modern cyber attacks often exploit human trust rather than technical flaws.
+          This demonstration shows how easily systems can appear compromised
+          when users unknowingly grant access.
+        </p>
+        <p>
+          <strong>Key Takeaway:</strong><br>
+          Awareness, verification, and secure design are the strongest defenses
+          against social engineering and cyber deception.
+        </p>
+        <p>
+          Cybersecurity is not just about technology — it is about informed users.
+        </p>
+      </div>`;
   }
 };
 </script>
