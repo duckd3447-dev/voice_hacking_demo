@@ -2,109 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Cyber Security Awareness Demo</title>
+<title>Cyber Security Threat Simulation</title>
 
 <style>
-:root {
-  --green: #00ff9c;
-  --red: #ff3b3b;
-  --blue: #00b7ff;
-  --yellow: #ffd000;
-  --bg: #05070a;
-}
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top, #0b0f17, #02040a);
+    color: #e6f1ff;
+    font-family: "Segoe UI", system-ui, monospace;
+    overflow: hidden;
+  }
 
-* { box-sizing: border-box; }
+  #header {
+    padding: 14px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #0a2540, #000);
+    border-bottom: 2px solid #1a73e8;
+  }
 
-body {
-  margin: 0;
-  background: radial-gradient(circle at top, #0b1220, #05070a);
-  color: var(--green);
-  font-family: "Segoe UI", monospace;
-  overflow: hidden;
-}
+  #subheader {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
 
-/* HEADER */
-#header {
-  text-align: center;
-  padding: 14px;
-  font-size: 22px;
-  letter-spacing: 2px;
-  border-bottom: 1px solid #1aff8c40;
-  background: #070b14;
-}
+  #lights {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin: 20px 0;
+  }
 
-/* STATUS BAR */
-#status {
-  text-align: center;
-  font-size: 14px;
-  color: var(--yellow);
-  margin-top: 8px;
-}
+  .light {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1c2333;
+    box-shadow: inset 0 0 8px #000;
+  }
 
-/* LIGHTS */
-#lights {
-  display: flex;
-  justify-content: center;
-  gap: 22px;
-  margin: 18px 0;
-}
+  #terminal {
+    padding: 20px;
+    height: calc(100vh - 210px);
+    overflow-y: auto;
+    white-space: pre-line;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #ff6b6b;
+  }
 
-.light {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #222;
-  box-shadow: 0 0 10px #000 inset;
-  transition: 0.3s;
-}
+  #hackVideo {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-/* PROGRESS */
-#progressBox {
-  width: 80%;
-  margin: 10px auto;
-  height: 10px;
-  background: #111;
-  border-radius: 10px;
-  overflow: hidden;
-  display: none;
-}
-
-#progress {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--yellow), var(--red));
-  transition: width 0.2s;
-}
-
-/* TERMINAL */
-#terminal {
-  padding: 18px;
-  height: calc(100vh - 260px);
-  overflow-y: auto;
-  font-size: 14px;
-  line-height: 1.45;
-  white-space: pre-line;
-}
-
-/* VIDEO */
-#hackVideo {
-  display: none;
-  width: 100%;
-  height: calc(100vh - 140px);
-  object-fit: cover;
-}
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: #1aff8c50; }
-
+  .footer {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.6;
+  }
 </style>
 </head>
 
 <body>
 
-<div id="header">CYBER SECURITY AWARENESS SIMULATION</div>
-<div id="status">🟡 Monitoring Network Activity</div>
+<div id="header">
+  CYBER SECURITY AWARENESS & THREAT SIMULATION
+  <div id="subheader">
+    Educational demonstration • No real attack involved
+  </div>
+</div>
 
 <div id="lights">
   <div class="light" id="redLight"></div>
@@ -112,45 +87,40 @@ body {
   <div class="light" id="blueLight"></div>
 </div>
 
-<div id="progressBox"><div id="progress"></div></div>
-
 <div id="terminal">
-⚠️ Educational simulation only.  
-No real hacking, no data collection.
+🟡 System Status: NORMAL OPERATION
 
-System initialized.
-Awaiting command…
+• Network traffic within expected limits  
+• No active threat detected  
+• Monitoring enabled  
+
+Use authorized command interface to simulate events.
 </div>
 
 <video
   id="hackVideo"
-  src="hacking_demo.mp4"
+  src="/static/hacking_demo.mp4"
   muted
   autoplay
   playsinline
 ></video>
 
+<div class="footer">
+  Cybersecurity Awareness Project • Demonstration Environment
+</div>
+
 <script>
 const terminal = document.getElementById("terminal");
 const video = document.getElementById("hackVideo");
-const statusText = document.getElementById("status");
-const progressBox = document.getElementById("progressBox");
-const progress = document.getElementById("progress");
 
 const red = document.getElementById("redLight");
 const green = document.getElementById("greenLight");
 const blue = document.getElementById("blueLight");
 
 function clearLights() {
-  red.style.background = "#222";
-  green.style.background = "#222";
-  blue.style.background = "#222";
-}
-
-function setLight(el, color) {
-  clearLights();
-  el.style.background = color;
-  el.style.boxShadow = `0 0 15px ${color}`;
+  red.style.background = "#1c2333";
+  green.style.background = "#1c2333";
+  blue.style.background = "#1c2333";
 }
 
 function log(text) {
@@ -158,91 +128,83 @@ function log(text) {
   terminal.scrollTop = terminal.scrollHeight;
 }
 
-function startMonitoring() {
-  terminal.textContent = "";
-  statusText.textContent = "🟡 Threat analysis in progress";
-  setLight(red, "var(--yellow)");
-  progressBox.style.display = "block";
-  progress.style.width = "0%";
-
-  let p = 0;
-  const interval = setInterval(() => {
-    p += Math.random() * 8;
-    progress.style.width = p + "%";
-    if (p >= 100) {
-      clearInterval(interval);
-      progressBox.style.display = "none";
-      startHack();
-    }
-  }, 180);
-}
-
-function startHack() {
-  terminal.textContent = "";
-  statusText.textContent = "🔴 Intrusion Detected";
-  setLight(red, "var(--red)");
-
+function hackingSimulation() {
+  terminal.textContent = "🔴 ACTIVE THREAT DETECTED\n\n";
   const lines = [
-    "Initializing attack surface mapping…",
-    "Enumerating live hosts…",
-    "Detected misconfigured firewall rule",
-    "Exploiting weak authentication vector",
-    "Privilege escalation successful",
-    "Session token intercepted",
-    "Injecting persistence module",
-    "Sensitive credentials extracted",
-    "Outbound data channel established",
-    "Log traces obfuscated",
-    "Simulation breach completed"
+    "• Suspicious traffic spike detected",
+    "• Unauthorized access attempt identified",
+    "• Exploit payload injected",
+    "• Firewall rules bypassed",
+    "• Privilege escalation successful",
+    "• Sensitive data accessed",
+    "• Exfiltration channel established",
+    "• Threat level escalated to CRITICAL",
+    "• Incident response required"
   ];
 
   let i = 0;
   const interval = setInterval(() => {
-    log("[+] " + lines[i]);
+    log(lines[i]);
     i++;
     if (i >= lines.length) clearInterval(interval);
-  }, 350);
+  }, 450);
 }
 
 function playVideo() {
-  terminal.textContent = "";
-  statusText.textContent = "🎥 Visual Attack Demonstration";
+  terminal.textContent = "📽️ Incident Footage: Simulated Cyber Attack\n";
   video.style.display = "block";
   video.currentTime = 0;
-  video.play().catch(()=>{});
+  video.play().catch(() => {});
 }
 
 function resetDemo() {
   video.pause();
   video.style.display = "none";
-  clearLights();
-  statusText.textContent = "🟢 System Secure";
-
   terminal.textContent =
-`✔ Simulation Reset
+`🟢 SYSTEM SECURED
 
-Most cyber attacks succeed due to:
-• Weak passwords
-• Phishing links
-• Unpatched systems
-• Public Wi-Fi misuse
+• Threat neutralized
+• Systems restored
+• No data loss confirmed
 
-This demo shows how attacks LOOK — not how to perform them.
+Key Lessons:
+✔ Use strong passwords
+✔ Avoid suspicious links
+✔ Keep systems updated
+✔ Enable multi-factor authentication`;
 
-Stay alert. Stay secure.`;
+  clearLights();
 }
 
-/* WEBSOCKET */
 const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
 const ws = new WebSocket(wsProtocol + location.host + "/ws");
 
-ws.onmessage = (e) => {
-  const cmd = e.data.toUpperCase();
+ws.onmessage = (event) => {
+  const cmd = event.data.toUpperCase();
 
-  if (cmd === "START") startMonitoring();
-  if (cmd === "RED") { statusText.textContent="🔴 Alert Mode"; setLight(red,"var(--red)"); }
-  if (cmd === "GREEN") { statusText.textContent="🟢 Secure"; setLight(green,"var(--green)"); }
-  if (cmd === "BLUE") { statusText.textContent="🔵 Analysis Mode"; setLight(blue,"var(--blue)"); }
+  if (cmd === "START") {
+    clearLights();
+    red.style.background = "red";
+    hackingSimulation();
+  }
+
+  if (cmd === "RED") {
+    clearLights();
+    red.style.background = "red";
+  }
+
+  if (cmd === "GREEN") {
+    clearLights();
+    green.style.background = "green";
+    terminal.textContent = "🟢 SYSTEM STATUS: SECURE";
+  }
+
+  if (cmd === "BLUE") {
+    clearLights();
+    blue.style.background = "#1a73e8";
+    terminal.textContent = "🔵 MONITORING MODE ENABLED";
+  }
+
   if (cmd === "VIDEO") playVideo();
   if (cmd === "RESET") resetDemo();
 };
