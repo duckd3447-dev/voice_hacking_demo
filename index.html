@@ -1,287 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cybersecurity Command Demo</title>
+  <meta charset="UTF-8" />
+  <title>Voice Hacking Demo</title>
 
-<style>
-body {
-  margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  color: #fff;
-  transition: background 0.6s ease;
-  background: radial-gradient(circle, #222, #000);
-}
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #00f7ff;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
 
-/* SCREEN STATES */
-body.idle { background: radial-gradient(circle, #333300, #000); }
-body.monitoring { background: radial-gradient(circle, #001a33, #000); }
-body.secure { background: radial-gradient(circle, #003300, #000); }
-body.attack {
-  background: radial-gradient(circle, #330000, #000);
-  animation: flash 0.6s infinite;
-}
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
 
-@keyframes flash {
-  0% { background-color: #300; }
-  50% { background-color: #600; }
-  100% { background-color: #300; }
-}
+    video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      display: none;
+    }
 
-.container {
-  display: flex;
-  height: 100vh;
-}
+    .title {
+      font-size: 48px;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px #00f7ff;
+    }
 
-.left {
-  width: 35%;
-  background: #111;
-  padding: 20px;
-  border-right: 3px solid #333;
-}
+    .status {
+      font-size: 24px;
+      padding: 15px 30px;
+      border: 2px solid #00f7ff;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #00f7ff;
+      max-width: 80%;
+      text-align: center;
+    }
 
-.right {
-  width: 65%;
-  padding: 20px;
-  background: transparent;
-  overflow-y: auto;
-}
+    .attack {
+      color: red;
+      border-color: red;
+      box-shadow: 0 0 20px red;
+      text-shadow: 0 0 10px red;
+    }
 
-h1 {
-  color: #0ff;
-  text-align: center;
-}
+    .secure {
+      color: #00ff88;
+      border-color: #00ff88;
+      box-shadow: 0 0 20px #00ff88;
+    }
 
-/* VISUAL ONLY BUTTONS */
-.btn {
-  width: 100%;
-  padding: 14px;
-  margin: 10px 0;
-  font-size: 16px;
-  background: #222;
-  border: 2px solid #0ff;
-  color: #0ff;
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+    .monitoring {
+      color: #ffaa00;
+      border-color: #ffaa00;
+      box-shadow: 0 0 20px #ffaa00;
+    }
 
-/* STATUS PANEL */
-.status {
-  margin-top: 20px;
-  padding: 12px;
-  background: #222;
-  border-left: 6px solid yellow;
-  font-weight: bold;
-}
+    .idle {
+      color: #00f7ff;
+    }
 
-/* LIGHT INDICATORS */
-.lights span {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  margin-right: 8px;
-  background: #333;
-}
-
-.yellow { background: yellow; }
-.red { background: red; }
-.blue { background: cyan; }
-.green { background: lime; }
-
-/* TERMINAL */
-.terminal {
-  white-space: pre-line;
-  font-family: monospace;
-  font-size: 15px;
-  color: red;
-  animation: glitch 0.15s infinite;
-}
-
-@keyframes glitch {
-  0% { text-shadow: 1px 0 red; }
-  50% { text-shadow: -1px 0 cyan; }
-  100% { text-shadow: 1px 0 red; }
-}
-
-/* PROGRESS BAR */
-.progress {
-  width: 100%;
-  height: 10px;
-  background: #333;
-  margin-bottom: 10px;
-}
-
-.bar {
-  width: 0%;
-  height: 100%;
-  background: red;
-  transition: width 1s;
-}
-
-video {
-  width: 100%;
-  border: 3px solid red;
-}
-</style>
+    .reset {
+      color: #ffffff;
+      border-color: #ffffff;
+      box-shadow: 0 0 25px #ffffff;
+      text-shadow: 0 0 8px #ffffff;
+    }
+  </style>
 </head>
 
-<body class="idle">
+<body>
+  <div class="container">
+    <video id="attackVideo" src="/static/attack.mp4" muted autoplay loop></video>
 
-<div class="container">
-  <div class="left">
-    <h1>CYBERSECURITY COMMAND<br>DEMO</h1>
-
-    <button class="btn">▶ Start Attack</button>
-    <button class="btn">🔵 Monitoring</button>
-    <button class="btn">🟢 Secure</button>
-    <button class="btn">🎥 Play Video</button>
-    <button class="btn">⟳ Reset</button>
-
-    <div class="status">
-      <div class="lights">
-        <span id="y"></span>
-        <span id="r"></span>
-        <span id="b"></span>
-        <span id="g"></span>
-      </div>
-      <div id="statusText">🟡 System Idle – No Threat</div>
-    </div>
+    <div class="title">CYBERSECURITY COMMAND DEMO</div>
+    <div id="statusBox" class="status idle">System Idle — Awaiting Commands</div>
   </div>
 
-  <div class="right">
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <div id="output"></div>
-  </div>
-</div>
+  <script>
+    const ws = new WebSocket(
+      (location.protocol === "https:" ? "wss://" : "ws://") +
+      location.host +
+      "/ws"
+    );
 
-<script>
-/* =======================
-   WEBSOCKET CONNECTION
-======================= */
+    const statusBox = document.getElementById("statusBox");
+    const attackVideo = document.getElementById("attackVideo");
 
-const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
-const ws = new WebSocket(wsProtocol + location.host + "/ws");
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
 
-ws.onopen = () => {
-  console.log("✅ WebSocket connected");
-};
+    ws.onmessage = (event) => {
+      const state = event.data;
+      console.log("State received:", state);
 
-ws.onerror = (e) => {
-  console.error("❌ WebSocket error", e);
-};
+      statusBox.className = "status";
+      attackVideo.style.display = "none";
 
-ws.onclose = () => {
-  console.warn("⚠ WebSocket closed");
-};
+      if (state === "idle") {
+        statusBox.classList.add("idle");
+        statusBox.innerText =
+          "System Idle — No active threats detected. Standing by for analysis.";
 
-/* =======================
-   ELEMENT REFERENCES
-======================= */
+      } else if (state === "attack") {
+        statusBox.classList.add("attack");
+        statusBox.innerText =
+          "⚠️ ACTIVE ATTACK DETECTED ⚠️\nVoice manipulation attempt in progress. Unauthorized access being simulated.";
+        attackVideo.style.display = "block";
+        attackVideo.play();
 
-const output = document.getElementById("output");
-const bar = document.getElementById("bar");
-const statusText = document.getElementById("statusText");
+      } else if (state === "monitoring") {
+        statusBox.classList.add("monitoring");
+        statusBox.innerText =
+          "🔍 LIVE MONITORING MODE\nSystem intelligence is actively analyzing voice patterns, anomalies, and behavioral signals in real time.";
 
-const lights = {
-  y: document.getElementById("y"),
-  r: document.getElementById("r"),
-  b: document.getElementById("b"),
-  g: document.getElementById("g"),
-};
+      } else if (state === "secure") {
+        statusBox.classList.add("secure");
+        statusBox.innerText =
+          "🛡️ SYSTEM SECURED\nThreat successfully mitigated. Voice authentication restored. Data integrity and user trust protected.";
 
-function clearLights() {
-  Object.values(lights).forEach(l => l.className = "");
-}
+      } else if (state === "reset") {
+        statusBox.classList.add("reset");
+        statusBox.innerText =
+          "🔁 DEMO RESET — KEY LEARNING\n\nThis project demonstrates how emerging technologies like voice AI can be exploited if not secured properly.\n\nIt highlights the importance of:\n• Continuous monitoring\n• Strong authentication\n• Real-time threat detection\n• Proactive cybersecurity awareness\n\nSecurity is not optional — it is essential.";
 
-/* =======================
-   HACKING SIMULATION
-======================= */
-
-function hackingLines() {
-  output.innerHTML = "";
-  output.className = "terminal";
-
-  const lines = Array.from({ length: 40 }, (_, i) =>
-    `[${i}] Unauthorized process detected — PID ${Math.floor(Math.random() * 9000)}`
-  );
-
-  let i = 0;
-  const t = setInterval(() => {
-    if (i >= lines.length) {
-      clearInterval(t);
-      return;
-    }
-    output.innerText += lines[i++] + "\n";
-  }, 80);
-}
-
-/* =======================
-   STATE HANDLER
-======================= */
-
-ws.onmessage = (e) => {
-  const state = e.data;
-  console.log("📡 State received:", state);
-
-  document.body.className = "";
-  clearLights();
-  bar.style.width = "0%";
-  output.className = "";
-  output.innerHTML = "";
-
-  if (state === "idle") {
-    document.body.classList.add("idle");
-    lights.y.classList.add("yellow");
-    statusText.innerText = "🟡 System Idle – No Threat";
-  }
-
-  if (state === "attack") {
-    document.body.classList.add("attack");
-    lights.r.classList.add("red");
-    statusText.innerText = "🔴 ACTIVE CYBER ATTACK";
-    bar.style.width = "100%";
-    hackingLines();
-  }
-
-  if (state === "monitoring") {
-    document.body.classList.add("monitoring");
-    lights.b.classList.add("blue");
-    statusText.innerText = "🔵 Monitoring Network";
-    bar.style.width = "40%";
-    output.innerText = "Monitoring traffic...\nNo anomalies detected.";
-  }
-
-  if (state === "secure") {
-    document.body.classList.add("secure");
-    lights.g.classList.add("green");
-    statusText.innerText = "🟢 System Secure";
-    bar.style.width = "100%";
-    output.innerText = "Threat neutralized.\nSystem secured.";
-  }
-
-  if (state === "video") {
-    output.innerHTML = `
-      <video autoplay muted playsinline>
-        <source src="/static/hacking_demo.mp4" type="video/mp4">
-      </video>`;
-  }
-
-  if (state === "reset") {
-    document.body.className = "idle";
-    lights.y.classList.add("yellow");
-    statusText.innerText = "✔ Demo Reset";
-    output.innerHTML = `
-      <h2>Security Restored</h2>
-      <ul>
-        <li>Attack detected</li>
-        <li>Response executed</li>
-        <li>System hardened</li>
-        <li>User awareness matters</li>
-      </ul>`;
-  }
-};
-</script>
-
+      }
+    };
+  </script>
 </body>
 </html>
