@@ -1,11 +1,12 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+clients = set()
 current_state = "idle"
 
 
@@ -14,48 +15,56 @@ async def home():
     return FileResponse("index.html")
 
 
-@app.get("/state")
-async def state():
-    return JSONResponse({"state": current_state})
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await ws.accept()
+    clients.add(ws)
+    await ws.send_text(current_state)
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        clients.remove(ws)
+
+
+async def broadcast(state: str):
+    global current_state
+    current_state = state
+    for ws in list(clients):
+        await ws.send_text(state)
 
 
 @app.post("/cmd/idle")
 async def idle():
-    global current_state
-    current_state = "idle"
+    await broadcast("idle")
     return {"ok": True}
 
 
 @app.post("/cmd/attack")
 async def attack():
-    global current_state
-    current_state = "attack"
+    await broadcast("attack")
     return {"ok": True}
 
 
 @app.post("/cmd/monitoring")
 async def monitoring():
-    global current_state
-    current_state = "monitoring"
+    await broadcast("monitoring")
     return {"ok": True}
 
 
 @app.post("/cmd/secure")
 async def secure():
-    global current_state
-    current_state = "secure"
+    await broadcast("secure")
     return {"ok": True}
 
 
 @app.post("/cmd/video")
 async def video():
-    global current_state
-    current_state = "video"
+    await broadcast("video")
     return {"ok": True}
 
 
 @app.post("/cmd/reset")
 async def reset():
-    global current_state
-    current_state = "reset"
+    await broadcast("reset")
     return {"ok": True}
